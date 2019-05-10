@@ -20,10 +20,10 @@ df = pd.concat([df1,df2])
 df = pd.concat([df,df3])
 
 df = df.reset_index()
-print(df.head(10))
+
 
 df = df.sort_values(["code","fiscalyear"])
-print(df.head(10))
+
 
 df = df.set_index(["code","fiscalyear"])
 
@@ -31,13 +31,11 @@ df = df.set_index(["code","fiscalyear"])
 
 df.sort_index()
 
-print(df)
 
 
 df_temp  =  df.groupby("code").count()
 #df_temp["yc"] = df_temp.count()
-print("start")
-print(df_temp.head(10))
+
 df_temp= df_temp[df_temp["roe"]==3]
 
 df_temp["rc"] = df_temp["roe"]
@@ -46,10 +44,10 @@ del df_temp["market_cap"]
 del df_temp["pe_ratio"]
 del df_temp["pb_ratio"]
 del df_temp["roe"]
-print(df_temp.head(10))
+
 
 df = df.join(df_temp, how = "inner",  rsuffix='_r')
-print(df.index)
+
 df["roe_shift"] = df.groupby('code')["roe"].shift(1)
 
 g=lambda x:1 if x > 0 else 0
@@ -58,12 +56,12 @@ g=lambda x:1 if x > 0 else 0
 df["roe_diff"] =  (df["roe"]-df["roe_shift"])/df["roe_shift"]
 df["roe_increase"] = df["roe_diff"].apply(g)
 
-print(df)
+
 
 dfout = df.groupby("code").sum()
 #print(dfout)
 dfout = dfout[dfout["roe_increase"]==2]
-print(dfout)
+
 #df = df-df.shift(1)
 #df1["nc"] = df1["roe"].pct_change()
 #print(df)

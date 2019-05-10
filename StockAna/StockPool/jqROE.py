@@ -6,7 +6,7 @@ import sys
 
 
 
-jqd.auth("18621861857", "P4ssword")
+jqd.auth("18621861857", "123456")
 
 
 
