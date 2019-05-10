@@ -57,12 +57,14 @@ df["roe_diff"] =  (df["roe"]-df["roe_shift"])/df["roe_shift"]
 df["roe_increase"] = df["roe_diff"].apply(g)
 
 
+conversion = {'market_cap' : 'last', 'pe_ratio' : 'last', 'pb_ratio' : 'last', 'roe' : 'last', 'rc' : 'mean', 'roe_shift' : 'last', 'roe_diff' : 'mean', 'roe_increase' : 'sum'}
 
-dfout = df.groupby("code").sum()
+dfout = df.groupby("code").aggregate(conversion)
 #print(dfout)
 dfout = dfout[dfout["roe_increase"]==2]
 
 #df = df-df.shift(1)
 #df1["nc"] = df1["roe"].pct_change()
 #print(df)
+
 dfout.to_csv("./data/roe_increase2y.csv")
