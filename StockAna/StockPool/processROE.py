@@ -4,15 +4,15 @@ import numpy as np
 import sys
 
 
-df1 = pd.read_csv("y2016.csv",index_col = "code")
+df1 = pd.read_csv("./data/y2016.csv",index_col = "code")
 del df1["Unnamed: 0"]
 df1["fiscalyear"] = "2016"
 
-df2 = pd.read_csv("y2017.csv",index_col = "code")
+df2 = pd.read_csv("./data/y2017.csv",index_col = "code")
 del df2["Unnamed: 0"]
 df2["fiscalyear"] = "2017"
 
-df3 = pd.read_csv("y2018.csv",index_col = "code")
+df3 = pd.read_csv("./data/y2018.csv",index_col = "code")
 del df3["Unnamed: 0"]
 df3["fiscalyear"] = "2018"
 
@@ -31,7 +31,40 @@ df = df.set_index(["code","fiscalyear"])
 
 df.sort_index()
 
-df1  =  df.groupby("code")
-df1["nc"] = df1["roe"].pct_change()
-print(df1)
+print(df)
 
+
+df_temp  =  df.groupby("code").count()
+#df_temp["yc"] = df_temp.count()
+print("start")
+print(df_temp.head(10))
+df_temp= df_temp[df_temp["roe"]==3]
+
+df_temp["rc"] = df_temp["roe"]
+      
+del df_temp["market_cap"]
+del df_temp["pe_ratio"]
+del df_temp["pb_ratio"]
+del df_temp["roe"]
+print(df_temp.head(10))
+
+df = df.join(df_temp, how = "inner",  rsuffix='_r')
+print(df.index)
+df["roe_shift"] = df.groupby('code')["roe"].shift(1)
+
+g=lambda x:1 if x > 0 else 0
+
+
+df["roe_diff"] =  (df["roe"]-df["roe_shift"])/df["roe_shift"]
+df["roe_increase"] = df["roe_diff"].apply(g)
+
+print(df)
+
+dfout = df.groupby("code").sum()
+#print(dfout)
+dfout = dfout[dfout["roe_increase"]==2]
+print(dfout)
+#df = df-df.shift(1)
+#df1["nc"] = df1["roe"].pct_change()
+#print(df)
+dfout.to_csv("./data/roe_increase2y.csv")
