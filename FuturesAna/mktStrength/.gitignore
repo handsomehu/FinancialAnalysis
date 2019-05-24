@@ -10,3 +10,12 @@
 /pn2_years.h5
 /ma_atr.csv
 /data_ana/
+/MonthlyVolatility_new.csv
+/MonthlyVolatility_old.csv
+/MonthlyVolatility_semiold.csv
+/MonthlyVolatility_verynew.csv
+/QtrVolatility_new.csv
+/QtrVolatility_old.csv
+/QtrVolatility_semiold.csv
+/QtrVolatility_verynew.csv
+/testSTD.py
