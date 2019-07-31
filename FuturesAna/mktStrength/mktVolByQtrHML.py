@@ -49,21 +49,20 @@ for sub in slist:
     #DF_OHLC = DF.unstack().dropna()
     DF_C = DF["close"].unstack().dropna()
     
+    DF_H = DF["high"].unstack().dropna()
+    DF_L = DF["low"].unstack().dropna()   
+
     DF_C = DF_C.reset_index().set_index("major")
-    
-    
-    DF_C = DF_C.pct_change()
-    
-    DF_C = DF_C.dropna()
+    DF_H = DF_H.reset_index().set_index("major")
+    DF_L = DF_L.reset_index().set_index("major")        
+    DF_C = 100*(DF_H-DF_L)/DF_C      
+    DF_C = DF_C.dropna()    
+    bymonth = DF_C.resample('Q')
 
-    
-    
-    bymonth = DF_C.resample('M')
-
-    
+    #standard deviation divide mean so different symbol could compare
     opt_vol = bymonth.std()/bymonth.mean()
     print(opt_vol)
-    optpre = "MonthlyVolatility"
+    optpre = "./data_ana/QtrHML"
     optname = ""
     if jjj == 0:
         optname = optpre + "_old.csv"
@@ -75,7 +74,6 @@ for sub in slist:
         optname = optpre + "_verynew.csv" 
     opt_vol.to_csv(optname)
     jjj += 1
-
 
 
     

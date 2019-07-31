@@ -48,11 +48,14 @@ for sub in slist:
     DF = DF.to_frame()
     #DF_OHLC = DF.unstack().dropna()
     DF_C = DF["close"].unstack().dropna()
-    
+    DF_H = DF["high"].unstack().dropna()
+    DF_L = DF["low"].unstack().dropna()   
+
     DF_C = DF_C.reset_index().set_index("major")
-    
-    
-    DF_C = DF_C.pct_change()
+    DF_H = DF_H.reset_index().set_index("major")
+    DF_L = DF_L.reset_index().set_index("major")        
+    DF_C = 100*(DF_H-DF_L)/DF_C    
+
     
     DF_C = DF_C.dropna()
 
@@ -63,7 +66,7 @@ for sub in slist:
     
     opt_vol = bymonth.std()/bymonth.mean()
     print(opt_vol)
-    optpre = "MonthlyVolatility"
+    optpre = "./data_ana/MonthlyHML"
     optname = ""
     if jjj == 0:
         optname = optpre + "_old.csv"
