@@ -27,7 +27,7 @@ slist = [
     
     ]
 
-slist = [["IF8888.CCFX"]]
+#slist = [["IF8888.CCFX"]]
 slpre = "s"
 slname = ""
 
