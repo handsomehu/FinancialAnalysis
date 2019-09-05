@@ -4,6 +4,7 @@ Created on Jun 3, 2019
 @author: I038825
 reference article:https://medium.com/fintechexplained/monte-carlo-simulation-engine-in-python-a1fa5043c613
 '''
+# -*- coding: utf-8 -*-  
 import numpy as np
 from matplotlib import pyplot as plt
 import math
