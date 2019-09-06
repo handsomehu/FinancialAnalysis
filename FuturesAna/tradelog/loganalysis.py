@@ -7,27 +7,31 @@ import sqlite3
 import pandas as pd
 
 result = pd.read_csv("./pal_templt.csv")
+tr = result
 
-def match_transaction(data):
+def match_transaction(data,result):
     #print("hello")
     data["closestatus"] = 0 # 0 not process yet;1 match closed;2 partial match, partial close
     data["qty"] = data["orderqty"]
+    data.loc[data.orderoffset == '平昨', 'orderoffset'] = '平仓'
+    #print(data[['contract','orderoffset']])
     #data["qty"]=data.apply(lambda r:judgeLevel(r),axis=1)
     #data[data["orderdirection"]=="空"]["qty"] = data[data["orderdirection"]=="空"]["qty"]*(-1)
     #data.to_csv("./test.csv")
     opens = data[data["orderoffset"]=="开仓"]
+    opens = opens.reset_index(drop=True)
     closes = data[data["orderoffset"]=="平仓"]
-    
-    
+    closes = closes.reset_index(drop=True)
+    partial = []
     for index,row in opens.iterrows():
         #print(index, row["qty"])
         #continue
-
+        #print(index)
         cursymbol = row["contract"]
         otime = row["ordertime"] 
         odir = row["orderdirection"]
         oprice = row["entryprice"]
-        oqty = row["qty"]
+        oqty = row["qty"]      
         #if odir == "空":
         #    oqty = oqty * -1    
         ctime = otime
@@ -35,6 +39,8 @@ def match_transaction(data):
         cstatus = 0
         cmatch = False  
         tomatch = oqty
+        closes = closes.reset_index(drop=True)
+        
         for ix,rw in closes.iterrows():
             partial = []
             pt = ("",0,0)
@@ -53,7 +59,9 @@ def match_transaction(data):
                         cprice = rw["entryprice"]
                         cstatus = 1
                         cmatch = True
-                        closes[ix]["qty"] = rw["qty"] - oqty
+                        d_index = list(closes.columns).index('qty')
+                        #print(closes.iloc[ ix,d_index])
+                        closes.iloc[ ix,d_index] = rw["qty"] - oqty
                         #closes.del(ix)
                         break                    
                     
@@ -65,7 +73,7 @@ def match_transaction(data):
                         #cmatch = True 
                         pt = (ctime,cprice,rw["qty"])
                         tomatch = oqty - rw["qty"]   
-                        partial.append(pt)
+                        partial = partial.append(pt)
                         closes.drop(index = ix,inplace = True)
                         continue
                     else:
@@ -78,7 +86,7 @@ def match_transaction(data):
                         cstatus = 1
                         cmatch = True
                         pt = (ctime,cprice,rw["qty"])
-                        partial.append(pt)
+                        partial = partial.append(pt)
                         closes.drop(index = ix,inplace = True)                 
                         break
                     elif odir != rw["orderdirection"] and tomatch < rw["qty"]:
@@ -86,12 +94,17 @@ def match_transaction(data):
                         cprice = rw["entryprice"]
                         cstatus = 1
                         cmatch = True
-                        closes[ix]["qty"] = rw["qty"] - oqty
+                        #closes[ix]["qty"] = rw["qty"] - oqty
+                        d_index = list(closes.columns).index('qty')
+                        #print(d_index)
+                        #print(ix)
+                        closes.to_csv("./test.csv")
+                        #print(closes.iloc[ ix,d_index])
+                        closes.iloc[ ix,d_index] = rw["qty"] - oqty
                         pt = (ctime,cprice,rw["qty"])
-                        partial.append(pt)
+                        partial = partial.append(pt)
                         #closes.del(ix)
-                        break                    
-                    
+                        break                                
                     elif odir != rw["orderdirection"] and tomatch > rw["qty"]:
                         
                         ctime = rw["ordertime"]
@@ -100,11 +113,15 @@ def match_transaction(data):
                         #cmatch = True 
                         pt = (ctime,cprice,rw["qty"])
                         tomatch = tomatch - rw["qty"]   
-                        partial.append[pt]
+                        partial = partial.append(pt)
                         closes.drop(index = ix,inplace = True)
                         continue
                     else:
-                        pass                                        
+                        pass
+                else:
+                    pass
+        
+                                                
         oneline = dict(result.iloc[0])
         oneline["strategyname"] = row["strategyname"]
         oneline["contract"] = row["contract"]
@@ -118,28 +135,32 @@ def match_transaction(data):
         
         if cmatch != True:
             print("there may have something wrong or open")
-            oneline["closestatus"] = 0  
+            oneline["closestatus"] = 0 
+            oneline["closetime"] = ""
+            oneline["closeprice"] = 0             
             #oneline["orderdirection"] = row["orderdirection"]              
         else:
-            if len(pt) > 0:
-                print(pt)
+            if partial :
+                #print(partial)
                 cprice = 0
                 tqty = 0
-                for sub in pt:
-                    print(sub)
-                    #ctime = sub[0]
-                    #cprice = cprice + sub[1]
-                    #tqty = tqty + sub[2]
+                for sub in partial:
+                    #print(sub)
+                    ctime = sub[0]
+                    cprice = cprice + sub[1]
+                    tqty = tqty + sub[2]
                 if tqty != oqty:
                     print("Amount is not match, check!")
                 cprice = cprice /len(pt)
             else:
-                pass
-            oneline["closetime"] = ctime
-            oneline["closeprice"] = cprice
+                oneline["closetime"] = ctime
+                oneline["closeprice"] = cprice
             #oneline["closestatus"] = 1
-        result.append(oneline)      
-                
+            
+        sss = pd.Series(oneline,name = "temp")
+        result =  result.append(sss,ignore_index = True)      
+    print(closes)
+    return result
                         
                     
                     
@@ -161,9 +182,12 @@ for row in c1:
     #print(str(row[0]))
     data = pd.read_sql(sql=sqlstr, con=conn, params={'st': str(row[0])})
     #data.to_csv("./log.csv")
-    
-    match_transaction(data)
+    temp = match_transaction(data,result)
+    tr = tr.append(temp)
     #break
-
-print(result)  
+    
+tr.drop(index = 0,inplace = True)
+tr = tr.reset_index(drop=True)
+print(tr)  
+tr.to_csv("./tr.csv")
 conn.close()  
