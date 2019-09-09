@@ -188,6 +188,7 @@ for row in c1:
     
 tr.drop(index = 0,inplace = True)
 tr = tr.reset_index(drop=True)
+
 print(tr)  
 tr.to_csv("./tr.csv")
 conn.close()  
