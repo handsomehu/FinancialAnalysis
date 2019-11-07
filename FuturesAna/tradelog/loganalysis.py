@@ -190,5 +190,7 @@ tr.drop(index = 0,inplace = True)
 tr = tr.reset_index(drop=True)
 
 print(tr)  
-tr.to_csv("./tr.csv")
+tr.to_csv("./tr1.csv")
 conn.close()  
+
+
