@@ -104,24 +104,4 @@ print(dffi)
 dffi = dffi[dffi["score"]>0.88]
 dffi.to_csv("./out.csv")
 sys.exit(0)
-#删除业绩亏损的股票
-df1=df1[df1.per >0]
 
-#删除净资产为负的股票
-df1=df1[df1.pb >0]
-
-#选取市盈率前100名股票
-df2=df1.sort_values(by=['per'],ascending=True).head(n)
-
-#选取市净率100名股票
-df3=df1.sort_values(by=['pb'],ascending=True).head(n)
-
-#生成股票代码集合，进行集合运算
-g2=set(df2.code) #低市盈率股票代码
-g3=set(df3.code) #低市净率股票代码
-g=g2&g3 #集合交运算
-dfg = pd.DataFrame(list(g),columns=['code'])
-dfg.to_csv("./out.csv")
-
-dfnew = pd.merge(df2,df3,how = 'inner', suffixes=['_l', '_r'])
-dfnew.to_csv("./outnew.csv")

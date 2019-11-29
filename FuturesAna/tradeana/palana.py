@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import sys
 
 
-pal = pd.read_csv("../tradelog/tr.csv",index_col = 0)
+pal = pd.read_csv("../tradelog/tr1.csv",index_col = 0)
 print(pal)
 # by order
 fig, ax = plt.subplots()

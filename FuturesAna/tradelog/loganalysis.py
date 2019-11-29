@@ -11,6 +11,9 @@ tr = result
 
 def match_transaction(data,result):
     #print("hello")
+    
+    data = data[data["contract"]!='AP909']
+    data = data[data["contract"]!='AP001']
     data["closestatus"] = 0 # 0 not process yet;1 match closed;2 partial match, partial close
     data["qty"] = data["orderqty"]
     data.loc[data.orderoffset == '平昨', 'orderoffset'] = '平仓'

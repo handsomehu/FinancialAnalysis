@@ -32,7 +32,7 @@ for sub in slist2:
 
     for sb in sub:
   
-        DF = jqd.get_price(sb, start_date='2009-07-01', end_date='2019-05-30', frequency='1m',fq = 'pre',fields=['open','close','high','low','volume']) # 获得IC1506.CCFX的分钟数据, 只获取open+close字段
+        DF = jqd.get_price(sb, start_date='2009-07-01', end_date='2019-10-31', frequency='1m',fq = 'pre',fields=['open','close','high','low','volume']) # 获得IC1506.CCFX的分钟数据, 只获取open+close字段
         DF.to_csv("./data/"+sb+".csv")
     #DF.to_hdf('pn2_years.h5', 'keyyear')
     #DF = pd.read_hdf("pn1.h5",'key')
