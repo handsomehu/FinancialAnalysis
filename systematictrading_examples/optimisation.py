@@ -134,11 +134,11 @@ def equalise_vols(returns, default_vol):
     facmat.columns = returns.columns
     norm_returns = returns.mul(facmat, axis="index",fill_value=0)
     #norm_returns = returns[:4]*facmat[:4]
-    print(returns.columns)
+    #print(returns.columns)
     #print("t1")
     #print(facmat.columns)
     #print("t2")
-    print(norm_returns.head())
+    #print(norm_returns.head())
     return norm_returns
 
 
@@ -468,7 +468,11 @@ data=pd_readcsv(filename)
 if __name__=="__main__":
     
     #opt_and_plot(data, "in_sample", "one_period", equalisemeans=False, equalisevols=True)
-    opt_and_plot(data, "in_sample", "one_period", equalisemeans=False, equalisevols=True)
+    #opt_and_plot(data, "in_sample", "one_period", equalisemeans=True, equalisevols=True)
+    #opt_and_plot(data, "in_sample", "bootstrap", equalisemeans=False, equalisevols=True, monte_carlo=500)
+    #opt_and_plot(data, "rolling", "bootstrap", rollyears=5, equalisemeans=False, equalisevols=True)
+    #opt_and_plot(data, "expanding", "one_period", equalisemeans=False, equalisevols=True)
+    opt_and_plot(data, "expanding", "bootstrap", equalisemeans=False, equalisevols=True)
     """
     Remember the arguments are:
     data, date_method, fit_method, rollyears=20, equalisemeans=False, equalisevols=True, 

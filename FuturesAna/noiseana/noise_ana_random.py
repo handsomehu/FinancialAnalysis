@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import sys
 import talib 
 import random
+from nltk.corpus.reader.childes import NS
 
 '''
 n = 10
@@ -57,87 +58,58 @@ print(slist[0])
 jjj = 0
 #global mdf
 mdf = []
-#for ss in slist:
-#    DF = jqd.get_price(ss, start_date='2009-01-01', end_date='2019-12-01', frequency='daily',fields=['open','close','high','low']) # 获得IC1506.CCFX的分钟数据, 只获取open+close字段
-#    DF.to_csv("./"+ss+"_testnoise.csv")
-#sys.exit(0)
+ml = 2000
+def bootstrapmean(data,monte_lengh):
+    df = data.reset_index()
+    noisedata = []
+    for i in range(monte_lengh):
+        start_idx=int(random.uniform(0,1)*(len(df)-221))
+        bs_idx = np.arange(start_idx, start_idx+mul*10)
+        if bs_idx[-1] >= len(df):
+            continue
+        temp =  df.iloc[bs_idx,:] 
+        #print(temp)
+        #print(df.iloc[-1,0],df.iloc[-1,1])
+        rg = temp.iloc[-1,1]-temp.iloc[0,1]
+        #print(rg)
+        noises = abs( temp["close"]-temp["close"].shift(-1))
+        
+        noises = noises.fillna(method='ffill')
+        #print(noises)
+        #print(noises.sum())
+        noisedata.append(abs(rg)/noises.sum())
+        #break
+        
+        
+    sum = 0
+    for ns in noisedata:
+        sum += ns
+            
+    return sum/len(noisedata)
+#DF = pd.read_csv("./testnoise.csv",index_col = 0,parse_dates = True)
+#dfclose = pd.DataFrame(DF["close"])
 for sub1 in slist:
     for sub in sub1:
         for mul in range(2,22):
             #global mdf
+            #iterlen = ml*mul#mul is larger, time frame is large, so here adjust it
+            iterlen = ml #treat every length the same, use large length
             sdays = str(mul*barlength) + "D"
-            #DF = jqd.get_price(sub, start_date='2009-01-01', end_date='2019-12-01', frequency='daily',fields=['open','close','high','low']) # 获得IC1506.CCFX的分钟数据, 只获取open+close字段
-            #DF.to_csv("./testnoise.csv")
-            #sys.exit(0)
-            #DF.to_hdf('pn2_years.h5', 'keyyear')
-            #DF = pd.read_hdf("pn1.h5",'key')
             DF = pd.read_csv("./data/"+sub+"_1daybar.csv",index_col = 0,parse_dates = True)
-            #print(DF)
-            #DF.to_csv("./testnoise1.csv")
-            #sys.exit(0)
-            #DF = DF.to_frame()
-            #DF_OHLC = DF.unstack().dropna()
-            '''
-            DF_C = DF["close"].unstack().dropna()
-            DF_O = DF["open"].unstack().dropna()
-            DF_H = DF["high"].unstack().dropna()
-            DF_L = DF["low"].unstack().dropna()
-            
-            DF_C = DF_C.reset_index().set_index("major")
-            DF_O = DF_O.reset_index().set_index("major")
-            DF_H = DF_H.reset_index().set_index("major")
-            DF_L = DF_L.reset_index().set_index("major")
-            
-        
-            DF_C = DF_C.dropna()
-            DF_O = DF_O.dropna()
-            '''
-            DF_C = DF["close"]
-            DF_C = DF_C.dropna()
-            DF_Change = abs(DF_C-DF_C.shift(-1))
-            #DF_Change = DF_Change.fillna(0)
-            DF_Change = DF_Change.dropna()
-            
-            
-            #print(DF_Change)
-        
-            p_bybl = DF_Change.resample(sdays)
-            #c_bybl = DF_Change.resample(sdays)
-            
-            noice_bybl = abs(p_bybl.last()-p_bybl.first())/p_bybl.sum()
-            
-            noice_byyear  = noice_bybl.resample("Y").mean()
-            noice_byyear = pd.DataFrame(noice_byyear)
-            noice_byyear["symbol"] = sub
-            noice_byyear["duration"] = sdays
-            
-            #optf = "./opt/f"+sdays+".csv"
-            #noice_bybl.to_csv(optf)
-            #print(noice_byyear)    
-            #continue
-            optpre = "MeanNoice"
-            noice_byyear = noice_byyear
-            #print(noice_byyear)
-            #print(list(noice_byyear))
-            #continue
-            #mdf.append(list(noice_byyear))
-            #continue
-            #mdf = pd.concat([mdf,noice_byyear],ignore_index=True)
-            #continue
-            noice_byyear = noice_byyear.reset_index()
-            if len(mdf) == 0:
-                #print(sdays)
-                mdf = noice_byyear
-            else:
-                print("combined")
-                mdf = pd.concat([mdf,noice_byyear],ignore_index=True)
-                #DataFrame.contatenate(mdf,noice_byyear)
-                #concat(noice_byyear)
+            DF = DF.dropna()
+            dfclose = pd.DataFrame(DF["close"])
+            nm = bootstrapmean(dfclose,iterlen)
+            mdf.append([sub,sdays,nm])
+
+
 #sys.exit(0)
+
 print(mdf)
-#pdf = pd.DataFrame(mdf, columns=['close', 'symbol', 'duration'])
+pdf = pd.DataFrame(mdf, columns=[ 'symbol', 'duration','close'])
     
-mdf.to_csv("./opt/noisebyyear.csv")
+pdf.to_csv("./opt/noisebyrandom.csv")
+
+# RANDOM SELECT DATA AND CALCULATE THIS VALUE
 
 
  

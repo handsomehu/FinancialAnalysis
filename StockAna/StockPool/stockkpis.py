@@ -57,6 +57,7 @@ for idx, row in df.iterrows():
    
 dfnew = dfnew.reset_index()
 del dfnew["index"] 
+dfnew = dfnew.dropna()
 #print(dfnew)
 dfnew.to_csv("./test1.csv")
 #print(df1)

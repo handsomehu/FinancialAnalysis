@@ -16,6 +16,7 @@ class Strategy(object):
         poses = [{}]
         poses.append({"ServerCode":"0600000","CostPrice":10,"CurrentQty":100})
         poses.append({"ServerCode":"0600893","CostPrice":20,"CurrentQty":100})
+        
         return poses
 
 class Market(object):
