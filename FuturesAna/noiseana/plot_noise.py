@@ -13,8 +13,8 @@ For examples, J and RB are normally far more better than A M, which is good I al
 The by year charts has little outcome, I did not see much value out of them
 '''
 
-random = False
-byyear = True
+random = True
+byyear = False
 
 if random == True:
     df = pd.read_csv("./opt/noisebyrandom.csv",index_col = 0)    
@@ -26,7 +26,7 @@ if random == True:
     #temp = temp[temp["duration"].isin(legends)]
     #print(temp)
     #fig = plt.subplots()
-    dfm = pd.DataFrame(df[df["symbol"]=="L8888.XDCE"])
+    dfm = pd.DataFrame(df[df["symbol"]=="RB8888.XSGE"])
     ax = dfm.plot(x = "duration", y = "close", kind='line',legend = "M")
     ax.set_xlabel("duration")
     #ax.legend(['M'])
@@ -36,18 +36,18 @@ if random == True:
     #bx.set_xlabel("duration")
     #bx.legend(['A'])
 
-    dfrm = pd.DataFrame(df[df["symbol"]=="PP8888.XDCE"])
+    dfrm = pd.DataFrame(df[df["symbol"]=="I8888.XDCE"])
     cx = dfrm.plot(x = "duration", y = "close", kind='line',legend = "RM",ax = ax)
     cx.set_xlabel("duration")
 
     #dfy = pd.DataFrame(df[df["symbol"]=="Y8888.XDCE"])
     #dx = dfy.plot(x = "duration", y = "close", kind='line',legend = "Y",ax = ax)  
     
-    dfhc = pd.DataFrame(df[df["symbol"]=="TA8888.XZCE"])
+    dfhc = pd.DataFrame(df[df["symbol"]=="SR8888.XZCE"])
     ex = dfhc.plot(x = "duration", y = "close", kind='line',legend = "Y",ax = ax)  
     ex.set_xlabel("duration")
         
-    ax.legend(['RB','AG','AL'])  
+    ax.legend(['RB','I','SR'])  
     #ax.set_xlabel("duration")
     #ax = df.plot(x="duration", y=close, legend='w0')
     #du_offer.plot(x='max_load', y='w1', legend='w1', title=du, ax=ax)
@@ -57,7 +57,7 @@ if byyear == True:
     df = pd.read_csv("./opt/noisebyyear.csv",index_col = 0)
     print(df) 
     df = df.dropna()
-    df1 = pd.DataFrame(df[df["symbol"]=="J8888.XDCE"])
+    df1 = pd.DataFrame(df[df["symbol"]=="PP8888.XDCE"])
     legends = ["20D","30D","40D","50D","60D"]
     df1 = pd.DataFrame(df1[df1["duration"].isin(legends)])
     

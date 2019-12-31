@@ -1,43 +1,13 @@
-"""
-This file shows how to do a number of different optimisations - 'one shot' and bootstrapping ;
-  also entirely in sample, expanding, and rolling windows 
-
-As in chapters 3 and 4 of "Systematic Trading" by Robert Carver (www.systematictrading.org)
-
-Required: pandas / numpy, matplotlib
-
-USE AT YOUR OWN RISK! No warranty is provided or implied.
-
-Handling of NAN's and Inf's isn't done here (except within pandas), 
-And there is no error handling!
-
-The bootstrapping method here is not 'block' bootstrapping, so any time series dependence of returns will be lost 
-
-"""
-# Thank Rob for the Demo, real guru
-
-import datetime
-import pandas as pd
 import matplotlib.pyplot as plt
+from scipy import stats
+import pandas as pd
 import numpy as np
+from datetime import datetime as dt
+import datetime 
+
 from scipy.optimize import minimize
 from copy import copy
 import random
-
-HANDCRAFTED_WTS=pd.read_csv("./data/handcraftweights.csv")
-
-def pd_readcsv(filename):
-    """
-    Reads the pandas dataframe from a filename, given the index is correctly labelled
-    """
-
-    
-    ans=pd.read_csv(filename)
-    ans.index=pd.to_datetime(ans['DATETIME'])
-    del ans['DATETIME']
-    ans.index.name=None
-    
-    return ans
 
 def correlation_matrix(returns):
     """
@@ -105,7 +75,7 @@ def basic_opt(std,corr,mus):
 
     return minimize(neg_SR_riskfree, start_weights, (sigma, mus), method='SLSQP', bounds=bounds, constraints=cdict, tol=0.00001)
 
-def neg_SR_riskfree(weights, sigma, mus, riskfree=0.00):
+def neg_SR_riskfree(weights, sigma, mus, riskfree=0.005):
     ## Returns minus the Sharpe Ratio (as we're minimising)
 
     """    
@@ -127,18 +97,9 @@ def equalise_vols(returns, default_vol):
     
     factors=(default_vol/16.0)/returns.std(axis=0)
     facmat=create_dull_pd_matrix(dullvalue=factors, dullname=returns.columns, index=returns.index)
-    #norm_returns=returns*facmat
-    #norm_returns.columns=returns.columns
-    #facmat = faimport cmat.unstack()
-    #print(facmat)
-    facmat.columns = returns.columns
-    norm_returns = returns.mul(facmat, axis="index",fill_value=0)
-    #norm_returns = returns[:4]*facmat[:4]
-    #print(returns.columns)
-    #print("t1")
-    #print(facmat.columns)
-    #print("t2")
-    #print(norm_returns.head())
+    norm_returns=returns*facmat
+    norm_returns.columns=returns.columns
+
     return norm_returns
 
 
@@ -353,14 +314,41 @@ def generate_fitting_dates(data, date_method, rollyears=20):
     ## give the user back the list of periods
     return periods
 
-        
-"""
-Now do some fitting
 
-Before we do that we need a bootstrap fitter
-"""
+def read_ts_csv(fname, dindex="Date"):
+    data=pd.read_csv(fname)
+    dateindex=[dt.strptime(dx, "%d/%m/%y") for dx in list(data[dindex])]
+    data.index=dateindex
+    del(data[dindex])
+    
+    return data
 
 
+def get_monthly_tr(tickname, rawdata):
+    total_returns=rawdata[tickname+"_TR"]
+    return (total_returns / total_returns.shift(1)) - 1.0
+
+def get_annual_tr(tickname, rawdata):
+    total_returns=rawdata[tickname+"_TR"]
+    return (total_returns / total_returns.shift(12)) - 1.0
+
+def get_forward_tr(tickname, rawdata, months):
+    total_returns=rawdata[tickname+"_TR"]
+    return (total_returns.shift(-months) / total_returns) - 1.0
+
+
+    
+def calc_ts_fixed_weights(rawdata, tickers, risk_weights):
+    return pd.DataFrame([risk_weights]*len(rawdata.index), rawdata.index, columns=tickers)
+
+
+
+
+def calc_asset_returns(rawdata, tickers):
+    asset_returns=pd.concat([get_monthly_tr(tickname, rawdata) for tickname in tickers], axis=1)
+    asset_returns.columns=tickers
+
+    return asset_returns
 
 def bootstrap_portfolio(returns_to_bs, monte_carlo=200, monte_length=250, equalisemeans=False, equalisevols=True, default_vol=0.2, default_SR=1.0):
     
@@ -394,7 +382,7 @@ def bootstrap_portfolio(returns_to_bs, monte_carlo=200, monte_length=250, equali
     return theweights_mean
 
 def optimise_over_periods(data, date_method, fit_method, rollyears=20, equalisemeans=False, equalisevols=True, 
-                          monte_carlo=200, monte_length=250, shrinkage_factors=(0.5, 0.5)):
+                          monte_carlo=100, monte_length=None, shrinkage_factors=(0.5, 0.5)):
     """
     Do an optimisation
     
@@ -406,6 +394,8 @@ def optimise_over_periods(data, date_method, fit_method, rollyears=20, equalisem
     
     
     """
+    if monte_length is None:
+        monte_length=len(data.index)
     
     ## Get the periods
     fit_periods=generate_fitting_dates(data, date_method, rollyears=rollyears)
@@ -419,7 +409,7 @@ def optimise_over_periods(data, date_method, fit_method, rollyears=20, equalisem
         
         ## Can be slow, if bootstrapping, so indicate where we are
         
-        print ("Fitting data for %s to %s" % (str(fit_tuple[2]), str(fit_tuple[3])))
+        print "Fitting data for %s to %s" % (str(fit_tuple[2]), str(fit_tuple[3]))
         
         if fit_method=="one_period":
             weights=markosolver(period_subset_data, equalisemeans=equalisemeans, equalisevols=equalisevols)
@@ -453,46 +443,22 @@ def opt_and_plot(*args, **kwargs):
     """
 
     mat1=optimise_over_periods(*args, **kwargs)
+    print(mat1.tail(5))
     mat1.plot()
     plt.show()
 
 
-## Get the data
 
-filename="./data/assetprices.csv"
-data=pd_readcsv(filename)
+rawdata=read_ts_csv("/home/rob/workspace/systematictradingexamples/plots_for_perhaps/MSCI_data.csv")
+refdata=pd.read_csv("/home/rob/workspace/systematictradingexamples/plots_for_perhaps/MSCI_ref.csv")
 
-## Let's do some optimisation
-## Feel free to play with these
+tickers=list(refdata[refdata.Type=="Country"].Country.values)
+tickers=["DEV_ASIA", "DEV_EUROPE", "DEV_NORTHAM"]
+tickers=["EM_ASIA", "EM_EMEA", "EM_LATAM"]
+tickers=list(refdata[(refdata.Type=="Country") & (refdata.EmorDEV=="EM") & (refdata.Region=="Asia")].Country.values)
 
-if __name__=="__main__":
-    
-    opt_and_plot(data, "in_sample", "one_period", equalisemeans=False, equalisevols=False)
-    #opt_and_plot(data, "in_sample", "one_period", equalisemeans=True, equalisevols=True)
-    #opt_and_plot(data, "in_sample", "bootstrap", equalisemeans=False, equalisevols=True, monte_carlo=500)
-    #opt_and_plot(data, "rolling", "bootstrap", rollyears=5, equalisemeans=False, equalisevols=True)
-    #opt_and_plot(data, "expanding", "one_period", equalisemeans=False, equalisevols=True)
-    #opt_and_plot(data, "expanding", "bootstrap", equalisemeans=False, equalisevols=True)
-    """
-    Remember the arguments are:
-    data, date_method, fit_method, rollyears=20, equalisemeans=False, equalisevols=True, 
-                              monte_carlo=200, monte_length=250
-    
-    
-    opt_and_plot(data, "in_sample", "one_period", equalisemeans=False, equalisevols=False)
-    
-    opt_and_plot(data, "in_sample", "one_period", equalisemeans=False, equalisevols=True)
-    
-    opt_and_plot(data, "in_sample", "one_period", equalisemeans=True, equalisevols=True)
-    
-    opt_and_plot(data, "in_sample", "bootstrap", equalisemeans=False, equalisevols=True, monte_carlo=500)
-    
-    opt_and_plot(data, "rolling", "one_period", rollyears=1, equalisemeans=False, equalisevols=True)
-    
-    opt_and_plot(data, "rolling", "one_period", rollyears=5, equalisemeans=False, equalisevols=True)
-    
-    opt_and_plot(data, "expanding", "one_period", equalisemeans=False, equalisevols=True)
-    
-    opt_and_plot(data, "expanding", "bootstrap", equalisemeans=False, equalisevols=True)
-    
-    """
+data=calc_asset_returns(rawdata, tickers)[pd.datetime(1994,1,1):]
+data=calc_asset_returns(rawdata, tickers)
+
+
+opt_and_plot(data, "in_sample", "bootstrap", equalisemeans=False, equalisevols=True)

@@ -32,7 +32,7 @@ assert len(result) == n
 sys.exit(0)
 '''
 
-jqd.auth("18621861234", "111111")
+#jqd.auth("18621861234", "111111")
 
 #symbolName = "RB8888.XSGE"
 s0 = ["A8888.XDCE","AL8888.XSGE","AU8888.XSGE","B8888.XDCE","C8888.XDCE","CF8888.XZCE","CU8888.XSGE","ER8888.XZCE","FU8888.XSGE","GN8888.XZCE","IF8888.CCFX","J8888.XDCE","L8888.XDCE","M8888.XDCE","ME8888.XZCE","P8888.XDCE","PB8888.XSGE","RB8888.XSGE","RO8888.XZCE","RU8888.XSGE","SR8888.XZCE","TA8888.XZCE","V8888.XDCE","WR8888.XSGE","WS8888.XZCE","WT8888.XZCE","Y8888.XDCE","ZN8888.XSGE"]
@@ -58,8 +58,11 @@ print(slist[0])
 jjj = 0
 #global mdf
 mdf = []
+mdf_ns2 = []
 ml = 2000
-def bootstrapmean(data,monte_lengh):
+
+#calc mean use Efficiency ratio
+def bootstrapmean1(data,monte_lengh):
     df = data.reset_index()
     noisedata = []
     for i in range(monte_lengh):
@@ -86,6 +89,64 @@ def bootstrapmean(data,monte_lengh):
         sum += ns
             
     return sum/len(noisedata)
+
+#calc mean use Price Density
+def bootstrapmean2(data,monte_lengh):
+    df = data.reset_index()
+    noisedata = []
+    for i in range(monte_lengh):
+        start_idx=int(random.uniform(0,1)*(len(df)-221))
+        bs_idx = np.arange(start_idx, start_idx+mul*10)
+        if bs_idx[-1] >= len(df):
+            continue
+        temp =  df.iloc[bs_idx,:] 
+        #print(temp)
+        #print(df.iloc[-1,0],df.iloc[-1,1])
+        rg = temp["high"].max()-temp["low"].min()
+        rgsum = temp["high"].sum()-temp["low"].sum()
+        #print(rg)
+        #print(noises)
+        #print(noises.sum())
+        noisedata.append(abs(rg/rgsum))
+        #break
+        
+        
+    sum = 0
+    for ns in noisedata:
+        sum += ns
+            
+    return sum/len(noisedata)
+
+#calc mean use standard of Mom
+def bootstrapmean3(data,monte_lengh):
+    df = data.reset_index()
+    noisedata = []
+    for i in range(monte_lengh):
+        start_idx=int(random.uniform(0,1)*(len(df)-221))
+        bs_idx = np.arange(start_idx, start_idx+mul*10)
+        if bs_idx[-1] >= len(df):
+            continue
+        temp =  df.iloc[bs_idx,:] 
+        #print(temp)
+        #print(df.iloc[-1,0],df.iloc[-1,1])
+        rg = temp.iloc[-1,1]-temp.iloc[0,1]
+        #print(rg)
+        noises = abs( temp["close"]-temp["close"].shift(-1))
+        
+        noises = noises.dropna()
+        #print(noises)
+        #print(noises.sum())
+        noisedata.append(abs(rg)/noises.std())
+        #break
+        
+        
+    sum = 0
+    for ns in noisedata:
+        sum += ns
+            
+    return sum/len(noisedata)
+
+
 #DF = pd.read_csv("./testnoise.csv",index_col = 0,parse_dates = True)
 #dfclose = pd.DataFrame(DF["close"])
 for sub1 in slist:
@@ -98,7 +159,8 @@ for sub1 in slist:
             DF = pd.read_csv("./data/"+sub+"_1daybar.csv",index_col = 0,parse_dates = True)
             DF = DF.dropna()
             dfclose = pd.DataFrame(DF["close"])
-            nm = bootstrapmean(dfclose,iterlen)
+            #nm = bootstrapmean1(dfclose,iterlen)
+            nm = bootstrapmean3(DF,iterlen)
             mdf.append([sub,sdays,nm])
 
 
@@ -107,7 +169,7 @@ for sub1 in slist:
 print(mdf)
 pdf = pd.DataFrame(mdf, columns=[ 'symbol', 'duration','close'])
     
-pdf.to_csv("./opt/noisebyrandom.csv")
+pdf.to_csv("./opt/noisebyrandom_smom.csv")
 
 # RANDOM SELECT DATA AND CALCULATE THIS VALUE
 

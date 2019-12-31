@@ -14,7 +14,6 @@ And there is no error handling!
 The bootstrapping method here is not 'block' bootstrapping, so any time series dependence of returns will be lost 
 
 """
-# Thank Rob for the Demo, real guru
 
 import datetime
 import pandas as pd
@@ -24,7 +23,7 @@ from scipy.optimize import minimize
 from copy import copy
 import random
 
-HANDCRAFTED_WTS=pd.read_csv("./data/handcraftweights.csv")
+HANDCRAFTED_WTS=pd.read_csv("/home/rob/workspace/systematictradingexamples/handcraftweights.csv")
 
 def pd_readcsv(filename):
     """
@@ -127,18 +126,9 @@ def equalise_vols(returns, default_vol):
     
     factors=(default_vol/16.0)/returns.std(axis=0)
     facmat=create_dull_pd_matrix(dullvalue=factors, dullname=returns.columns, index=returns.index)
-    #norm_returns=returns*facmat
-    #norm_returns.columns=returns.columns
-    #facmat = faimport cmat.unstack()
-    #print(facmat)
-    facmat.columns = returns.columns
-    norm_returns = returns.mul(facmat, axis="index",fill_value=0)
-    #norm_returns = returns[:4]*facmat[:4]
-    #print(returns.columns)
-    #print("t1")
-    #print(facmat.columns)
-    #print("t2")
-    #print(norm_returns.head())
+    norm_returns=returns*facmat
+    norm_returns.columns=returns.columns
+
     return norm_returns
 
 
@@ -419,7 +409,7 @@ def optimise_over_periods(data, date_method, fit_method, rollyears=20, equalisem
         
         ## Can be slow, if bootstrapping, so indicate where we are
         
-        print ("Fitting data for %s to %s" % (str(fit_tuple[2]), str(fit_tuple[3])))
+        print "Fitting data for %s to %s" % (str(fit_tuple[2]), str(fit_tuple[3]))
         
         if fit_method=="one_period":
             weights=markosolver(period_subset_data, equalisemeans=equalisemeans, equalisevols=equalisevols)
@@ -459,7 +449,7 @@ def opt_and_plot(*args, **kwargs):
 
 ## Get the data
 
-filename="./data/assetprices.csv"
+filename="/home/rob/workspace/systematictradingexamples/assetprices.csv"
 data=pd_readcsv(filename)
 
 ## Let's do some optimisation
@@ -467,12 +457,6 @@ data=pd_readcsv(filename)
 
 if __name__=="__main__":
     
-    opt_and_plot(data, "in_sample", "one_period", equalisemeans=False, equalisevols=False)
-    #opt_and_plot(data, "in_sample", "one_period", equalisemeans=True, equalisevols=True)
-    #opt_and_plot(data, "in_sample", "bootstrap", equalisemeans=False, equalisevols=True, monte_carlo=500)
-    #opt_and_plot(data, "rolling", "bootstrap", rollyears=5, equalisemeans=False, equalisevols=True)
-    #opt_and_plot(data, "expanding", "one_period", equalisemeans=False, equalisevols=True)
-    #opt_and_plot(data, "expanding", "bootstrap", equalisemeans=False, equalisevols=True)
     """
     Remember the arguments are:
     data, date_method, fit_method, rollyears=20, equalisemeans=False, equalisevols=True, 
