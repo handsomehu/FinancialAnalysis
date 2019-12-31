@@ -75,16 +75,16 @@ def calckpi(df1):
     #print(df1)
     return df1
 
-lv_cnt = 100
+lv_cnt = 500
 lv_vol = 0
 lv_seed = 6
-lv_trend = 30
+lv_trend = 40
 
-lv_open = 50
+lv_open = 5000
 
     
 for i in range(lv_cnt):
-    lv_trend_i = int( lv_trend*(random.random()+random.random()))
+    lv_trend_i = int( lv_trend*(1+random.random()+random.random()))
     
     if lv_trend_i < 10:
         lv_trend_i = 20 + lv_trend_i
@@ -93,7 +93,7 @@ for i in range(lv_cnt):
 
     lv_vol = 0.1+ random.random()/10
     #lv_trend_i = 60
-    ans=arbitrary_timeseries(generate_trendy_price(Nlength=600, Tlength=lv_trend_i, Xamplitude=lv_seed_i, Volscale=lv_vol))    
+    ans=arbitrary_timeseries(generate_trendy_price(Nlength=900, Tlength=lv_trend_i, Xamplitude=lv_seed_i, Volscale=lv_vol))    
     #print(ans)
     #ans = list(ans)
     #ans = shiftlist(ans, int(lv_trend_i*random.random()))  
@@ -109,7 +109,7 @@ for i in range(lv_cnt):
     ans.columns = ["datetime","close"]
     lv_open_i = 2+ lv_open * random.random()
     ans["close"] = 1+ ans["close"].cumsum()/100
-    ans["close"] = ans["close"]*lv_open_i
+    ans["close"] = ans["close"]*lv_open
     #print(ans)
     #ans["close"].plot()
     #show()
