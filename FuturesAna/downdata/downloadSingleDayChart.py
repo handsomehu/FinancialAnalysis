@@ -12,7 +12,7 @@ import jqdatasdk as jqd
 import pandas as pd
 
 
-jqd.auth("18621861857", "P4ssword")
+jqd.auth("18621861857", "")
 
 slist2 = [["002049.XSHE"]]
 for sub in slist2:
