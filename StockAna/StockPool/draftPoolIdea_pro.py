@@ -101,7 +101,7 @@ dffi=pd.DataFrame(dffi)
 #dffi.dropindex()
 #dffi.columns = ["ts_code","industry","score"]
 print(dffi)
-dffi = dffi[dffi["score"]>0.88]
-dffi.to_csv("./out.csv")
+dffi = dffi[dffi["score"]>0.8]
+dffi.to_csv("./out_8.csv")
 sys.exit(0)
 

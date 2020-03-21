@@ -75,10 +75,10 @@ def calckpi(df1):
     #print(df1)
     return df1
 
-lv_cnt = 500
+lv_cnt = 31
 lv_vol = 0
 lv_seed = 6
-lv_trend = 40
+lv_trend = 60
 
 lv_open = 5000
 
