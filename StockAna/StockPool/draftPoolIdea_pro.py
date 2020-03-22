@@ -5,12 +5,15 @@ import pandas as pd
 import sys,time
 
 lv_pct = 0.2
+ts.set_token("e945701f493de3781f546e21895c9896cabf3c0bea1e549a3409efde")
 pro = ts.pro_api()
 lv_startdate = "20160101"
 lv_enddate = "20200101"
 lv_listflag = True
 
+
 if not lv_listflag:
+
         
     df = pro.stock_basic(exchange='', list_status='L', fields='ts_code,symbol,name,area,industry,list_date')
     
@@ -101,7 +104,7 @@ dffi=pd.DataFrame(dffi)
 #dffi.dropindex()
 #dffi.columns = ["ts_code","industry","score"]
 print(dffi)
-dffi = dffi[dffi["score"]>0.88]
+dffi = dffi[dffi["score"]>0.76]
 dffi.to_csv("./out.csv")
 sys.exit(0)
 

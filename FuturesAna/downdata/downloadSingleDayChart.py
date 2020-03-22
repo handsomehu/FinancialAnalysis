@@ -14,7 +14,7 @@ import pandas as pd
 
 jqd.auth("18621861857", "")
 
-slist2 = [["002049.XSHE"]]
+slist2 = [["SR8888.XZCE"]]
 for sub in slist2:
 
     for sb in sub:
